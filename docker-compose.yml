@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # 1. Servidor Principal Backend FastAPI + Modelo GCN-LSTM + SCADA Frontend
+  bioenose-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bioenose_app
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+      - HOST=0.0.0.0
+      - PORT=8000
+    volumes:
+      - ./database:/app/database
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  # 2. Simulador de Sensores (Opcional - Transmite datos cuando no hay hardware físico)
+  bioenose-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bioenose_simulator
+    command: ["python", "backend/simulator.py"]
+    environment:
+      - API_URL=http://bioenose-backend:8000/sensor_data
+    depends_on:
+      bioenose-backend:
+        condition: service_healthy
+    restart: on-failure

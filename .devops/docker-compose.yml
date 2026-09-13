@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  bioenose-backend:
+    build:
+      context: ..
+      dockerfile: .devops/Dockerfile
+    container_name: bioenose_app_devops
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=info
+      - HOST=0.0.0.0
+      - PORT=8000
+    volumes:
+      - ../database:/app/database
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
