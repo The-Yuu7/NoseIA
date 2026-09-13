@@ -10,8 +10,10 @@ except ImportError:
     LCD_AVAILABLE = False
     print("[WARN] La librería RPLCD no está instalada. Se simulará la salida en pantalla.")
 
+import os
+
 # Configuration
-API_URL = "http://localhost:8000/latest_result"
+API_URL = os.getenv("API_URL", "https://localhost:8000/latest_result")
 LCD_I2C_ADDRESS = 0x27  # Common address for 16x2 I2C LCD screens
 LCD_COLS = 16
 LCD_ROWS = 2

@@ -1,3 +1,4 @@
+import os
 import secrets
 import sys
 import time
@@ -12,7 +13,8 @@ try:
 except ImportError:
     WINDOWS = False
 
-API_URL = "http://localhost:8000/sensor_data"
+API_URL = os.getenv("API_URL", "https://localhost:8000/sensor_data")
+HEALTH_URL = os.getenv("API_HEALTH_URL", "https://localhost:8000/health")
 
 # Profiles definitions matching the real dataset distributions
 PRESETS = {
@@ -57,11 +59,11 @@ def main():
     # Wait for the API to be ready
     print("Verificando conexión con el servidor FastAPI...")
     try:
-        r = requests.get("http://localhost:8000/health")
+        r = requests.get(HEALTH_URL)
         if r.status_code == 200:
             print("¡Conexión establecida con éxito!")
     except Exception:
-        print("\n[ERROR] No se pudo conectar a la API en http://localhost:8000.")
+        print(f"\n[ERROR] No se pudo conectar a la API en {HEALTH_URL}.")
         print("Por favor, asegúrese de iniciar primero el servidor FastAPI (uvicorn).")
         sys.exit(1)
 

@@ -8,7 +8,7 @@ import requests
 rng = secrets.SystemRandom()
 
 # Configuración por defecto
-DEFAULT_SERVER = "http://localhost:8000"
+DEFAULT_SERVER = os.getenv("API_SERVER_URL", "https://localhost:8000")
 base_dir = os.path.dirname(os.path.abspath(__file__))
 DATASET_PATH = os.path.join(base_dir, "data", "datos_reales.csv")
 
@@ -24,12 +24,12 @@ def main():
         server = DEFAULT_SERVER
 
     # Auto-completar puerto 8000 si no se especifica
-    host_part = server.replace("http://", "").replace("https://", "")
-    if ":" not in host_part:
+    clean_host = server.split("://")[-1]
+    if ":" not in clean_host:
         server = server + ":8000"
 
-    if not server.startswith("http://") and not server.startswith("https://"):
-        server = f"{os.getenv('API_SCHEME', 'http://')}{server}"
+    if "://" not in server:
+        server = "https://" + server
 
     # Validar conexión
     print(f"\n[INFO] Validando conexión con el servidor en {server}/health...")
