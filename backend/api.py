@@ -2,6 +2,7 @@ from fastapi.staticfiles import StaticFiles
 import logging
 import os
 import pickle
+import asyncio
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
@@ -187,6 +188,38 @@ class ModelAssets:
 assets = ModelAssets()
 
 
+def _load_ml_model_artifacts(scaler_path: str, encoder_path: str, ref_path: str):
+    """Synchronous helper for loading model artifacts into ModelAssets."""
+    scaler = None
+    label_encoder = None
+    perfil_referencia = None
+
+    try:
+        with open(scaler_path, 'rb') as file_in:
+            scaler = pickle.load(file_in)
+        logger.info("Scaler loaded successfully from: %s", scaler_path)
+    except (ModuleNotFoundError, Exception) as err:
+        logger.warning("sklearn not found or error pickling scaler (%s). Using CustomStandardScaler.", err)
+        scaler = CustomStandardScaler()
+
+    try:
+        with open(encoder_path, 'rb') as file_in:
+            label_encoder = pickle.load(file_in)
+        logger.info("Label encoder loaded successfully from: %s", encoder_path)
+    except (ModuleNotFoundError, Exception) as err:
+        logger.warning("sklearn not found or error pickling label_encoder (%s). Using CustomLabelEncoder.", err)
+        label_encoder = CustomLabelEncoder(classes=['ALTA', 'BAJA', 'MEDIA'])
+
+    if os.path.exists(ref_path):
+        with open(ref_path, 'rb') as file_in:
+            perfil_referencia = pickle.load(file_in)
+        logger.info("Reference profile loaded successfully from: %s", ref_path)
+    else:
+        logger.warning("Optional reference profile not found at: %s", ref_path)
+
+    return scaler, label_encoder, perfil_referencia
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handles the startup and shutdown lifecycles of FastAPI assets."""
@@ -225,31 +258,11 @@ async def lifespan(app: FastAPI):
             raise FileNotFoundError(error_msg)
 
     try:
-        # Load scaler with zero-dependency fallback
-        try:
-            with open(scaler_path, 'rb') as file_in:
-                assets.scaler = pickle.load(file_in)
-            logger.info("Scaler loaded successfully from: %s", scaler_path)
-        except (ModuleNotFoundError, Exception) as err:
-            logger.warning("sklearn not found or error pickling scaler (%s). Using CustomStandardScaler.", err)
-            assets.scaler = CustomStandardScaler()
-
-        # Load label encoder with zero-dependency fallback
-        try:
-            with open(encoder_path, 'rb') as file_in:
-                assets.label_encoder = pickle.load(file_in)
-            logger.info("Label encoder loaded successfully from: %s", encoder_path)
-        except (ModuleNotFoundError, Exception) as err:
-            logger.warning("sklearn not found or error pickling label_encoder (%s). Using CustomLabelEncoder.", err)
-            assets.label_encoder = CustomLabelEncoder(classes=['ALTA', 'BAJA', 'MEDIA'])
-
-        # Load reference profile (if available)
-        if os.path.exists(ref_path):
-            with open(ref_path, 'rb') as file_in:
-                assets.perfil_referencia = pickle.load(file_in)
-            logger.info("Reference profile loaded successfully from: %s", ref_path)
-        else:
-            logger.warning("Optional reference profile not found at: %s", ref_path)
+        (
+            assets.scaler,
+            assets.label_encoder,
+            assets.perfil_referencia
+        ) = await asyncio.to_thread(_load_ml_model_artifacts, scaler_path, encoder_path, ref_path)
 
         # Initialize TFLite Interpreter (if library available)
         if tflite is not None:
@@ -785,4 +798,4 @@ def clear_buffer() -> Dict[str, Any]:
 if __name__ == "__main__":
     import uvicorn
     # Start ASGI server on execution
-    uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("api:app", host=os.getenv("HOST", "127.0.0.1"), port=8000, reload=True)

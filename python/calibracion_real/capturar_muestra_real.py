@@ -90,7 +90,7 @@ def contar_muestras_existentes():
 
 
 @app.post("/sensor_data")
-async def recibir_telemetria(data: SensorDataPayload):
+def recibir_telemetria(data: SensorDataPayload):
     payload_dict = data.model_dump()
     estado.ultima_telemetria = payload_dict
 

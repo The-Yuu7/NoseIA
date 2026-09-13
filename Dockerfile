@@ -17,8 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copiar e instalar dependencias Python desde backend
 COPY backend/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade "pip>=23.0" && \
+    pip install --no-cache-dir --prefer-binary -r requirements.txt
 
 # Copiar toda la estructura del proyecto en el contenedor
 COPY backend /app/backend
