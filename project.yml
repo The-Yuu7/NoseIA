@@ -1,0 +1,16 @@
+name: Bio-E-Nose-Quality-Control
+version: 1.0.0
+description: Sistema de Control de Calidad de Biocombustibles mediante Nariz Electrónica e Inferencia GCN-LSTM en Tiempo Real.
+author: Equipo Bio-E-Nose
+target_hardware:
+  microcontroller: ESP32 WROOM-32 (30 Pines)
+  edge_server: Raspberry Pi 4 Model B (4GB / 8GB)
+  sensors:
+    gas_array: [MQ-2, MQ-4, MQ-135, MQ-3, MQ-7, MQ-9]
+    adc_modules: [ADS1115_0x48, ADS1115_0x49]
+    chamber_ambient: DHT22 (GPIO 4)
+    reactor_thermocouple: MAX6675 (SPI)
+network:
+  ssid: MAGLIONI
+  ip_backend: 10.42.0.1
+  port_backend: 8000
