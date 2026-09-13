@@ -26,6 +26,10 @@ COPY frontend /app/frontend
 COPY database /app/database
 COPY python /app/python
 
+# Crear usuario no privilegiado para seguridad
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
 # Puerto expuesto para el servidor SCADA y API
 EXPOSE 8000
 

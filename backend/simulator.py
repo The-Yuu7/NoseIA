@@ -1,7 +1,9 @@
+import secrets
 import sys
 import time
-import random
 import requests
+
+rng = secrets.SystemRandom()
 
 # Asynchronous keypress detection for Windows
 try:
@@ -81,7 +83,7 @@ def main():
             # Generate simulated reading with 2% fluctuation noise
             payload = {}
             for k, val in base_values.items():
-                noise = 1 + (random.random() * 0.04 - 0.02)
+                noise = 1 + (rng.random() * 0.04 - 0.02)
                 payload[k] = round(val * noise, 2)
 
             # Send step data to FastAPI

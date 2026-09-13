@@ -1,9 +1,11 @@
 import os
 import sys
 import time
-import random
+import secrets
 import pandas as pd
 import requests
+
+rng = secrets.SystemRandom()
 
 # Configuración por defecto
 DEFAULT_SERVER = "http://localhost:8000"
@@ -27,7 +29,7 @@ def main():
         server = server + ":8000"
 
     if not server.startswith("http://") and not server.startswith("https://"):
-        server = "http://" + server
+        server = f"{os.getenv('API_SCHEME', 'http://')}{server}"
 
     # Validar conexión
     print(f"\n[INFO] Validando conexión con el servidor en {server}/health...")
@@ -72,7 +74,7 @@ def main():
 
         lote_idx = None
         if opcion == 'r':
-            lote_idx = random.randint(1, total_lotes)
+            lote_idx = rng.randint(1, total_lotes)
             print(f"[INFO] Seleccionado lote aleatorio: {lote_idx}")
         else:
             try:
