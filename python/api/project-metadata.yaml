@@ -1,0 +1,10 @@
+name: python-gcn-lstm-inference
+language: python
+framework: fastapi
+runtime: python
+packageManager: pip
+buildCommand: pip install -r requirements.txt
+testCommand: python -m unittest
+startCommand: uvicorn app.main:app --host 0.0.0.0 --port 8029
+healthEndpoint: /health
+port: 8029

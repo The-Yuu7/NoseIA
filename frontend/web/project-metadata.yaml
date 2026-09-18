@@ -1,0 +1,10 @@
+name: frontend-angular-scada
+language: typescript
+framework: angular
+buildTool: ng
+packageManager: npm
+backendUrl: http://localhost:8000
+buildCommand: npm run build
+devCommand: npm run dev
+testCommand: npm test
+port: 4200

@@ -1,0 +1,101 @@
+<!-- ANGULAR SCADA DASHBOARD & POSTGRESQL AUTHENTICATION -->
+<div class="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
+
+  <!-- HEADER NAVBAR -->
+  <header class="h-16 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-6">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+        N
+      </div>
+      <div>
+        <h1 class="font-bold text-lg text-emerald-400 leading-none">NoseIA SCADA (Angular 17)</h1>
+        <p class="text-xs text-slate-400">Control de Calidad de Biocombustibles vía GCN-LSTM</p>
+      </div>
+    </div>
+
+    <!-- USER AUTHENTICATION STATUS -->
+    <div *ngIf="isLoggedIn" class="flex items-center gap-4">
+      <span class="text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-3 py-1 rounded-full">
+        👤 {{ currentUser?.name }} ({{ currentUser?.username }})
+      </span>
+      <button (click)="onLogout()" class="text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-500/30 px-3 py-1 rounded-lg">
+        Cerrar Sesión
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN BODY -->
+  <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
+
+    <!-- LOGIN FORM (IF NOT LOGGED IN) -->
+    <div *ngIf="!isLoggedIn" class="max-w-md mx-auto mt-16 bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-2xl">
+      <h2 class="text-xl font-bold text-emerald-400 mb-2">Inicio de Sesión SCADA</h2>
+      <p class="text-xs text-slate-400 mb-6">Autenticación requerida conectada a PostgreSQL</p>
+
+      <form (ngSubmit)="onLogin()" class="space-y-4">
+        <div>
+          <label class="block text-xs text-slate-300 mb-1">Usuario / Email</label>
+          <input type="text" [(ngModel)]="loginUser.username" name="username" required
+                 class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="admin">
+        </div>
+
+        <div>
+          <label class="block text-xs text-slate-300 mb-1">Contraseña</label>
+          <input type="password" [(ngModel)]="loginUser.password" name="password" required
+                 class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-emerald-500" placeholder="••••••••">
+        </div>
+
+        <div *ngIf="loginError" class="text-xs text-red-400 bg-red-500/10 border border-red-500/30 p-2 rounded-lg">
+          {{ loginError }}
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors shadow-lg shadow-emerald-600/20">
+          Ingresar al Sistema
+        </button>
+      </form>
+    </div>
+
+    <!-- LOGGED IN SCADA DASHBOARD VIEW -->
+    <div *ngIf="isLoggedIn" class="space-y-6">
+
+      <!-- PREDICTION CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-5">
+          <span class="text-xs text-slate-400 block mb-1">Diagnóstico GCN-LSTM</span>
+          <div class="text-2xl font-bold text-emerald-400">
+            {{ predictionData.prediction }}
+          </div>
+          <span class="text-xs text-slate-400 mt-2 block">Confianza: {{ (predictionData.confidence * 100).toFixed(1) }}%</span>
+        </div>
+
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-5">
+          <span class="text-xs text-slate-400 block mb-1">Estado del Gas</span>
+          <div class="text-sm font-semibold text-slate-200">
+            {{ predictionData.ambient_status }}
+          </div>
+        </div>
+
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-5">
+          <span class="text-xs text-slate-400 block mb-1">Estado del Servidor</span>
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-sm font-bold text-emerald-400">ONLINE (PostgreSQL Ready)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- SENSOR VALUES GRID -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+        <h3 class="text-sm font-bold text-slate-200 mb-4">Lecturas del Array de Sensores en Tiempo Real</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div *ngFor="let item of predictionData.latest_values | keyvalue" class="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50">
+            <span class="text-xs text-slate-400 block font-mono">{{ item.key }}</span>
+            <span class="text-lg font-bold text-emerald-400">{{ item.value }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
