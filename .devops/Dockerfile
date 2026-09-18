@@ -22,10 +22,15 @@ COPY frontend /app/frontend
 COPY database /app/database
 COPY python /app/python
 
-# Crear usuario no privilegiado para seguridad
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+
+ARG PORT=8000
+ENV PORT=${PORT}
+EXPOSE ${PORT}
+
 USER appuser
 
-EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT:-8000}/health')" || exit 1
 
-CMD ["python", "-m", "uvicorn", "backend.api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "python -m uvicorn backend.api:app --host 0.0.0.0 --port ${PORT:-8000}"]

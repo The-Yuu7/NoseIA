@@ -1,27 +1,13 @@
-# Documentación CI/CD y Calidad de Código - Bio-E-Nose
+# Laboratorio DevOps
 
-Este documento define la tubería de integración continua y despliegue continuo (CI/CD) para el proyecto **Control de Calidad de Biocombustibles mediante Nariz Electrónica e Inteligencia Artificial (GCN-LSTM)**.
+Este proyecto utiliza el Framework Laboratorio DevOps.
 
-## Arquitectura del Pipeline
+No modificar:
 
-```
-+-----------+      +-----------+      +-----------+      +-----------+
-|   LINT    | ---> |   TEST    | ---> |   BUILD   | ---> |  DEPLOY   |
-| (flake8)  |      | (pytest)  |      | (docker)  |      |   (rpi)   |
-+-----------+      +-----------+      +-----------+      +-----------+
-```
+.gitlab-ci.yml
 
-### Etapas principales:
-1. **Linting & Formato (`lint`)**: Validación sintáctica y estilo PEP8.
-2. **Pruebas Unitarias e Integración (`test`)**: Ejecución automatizada de Pytest y cobertura de pruebas para endpoints FastAPI.
-3. **Construcción de Contenedores (`build`)**: Empaquetado en imagen Docker para arquitectura ARM64/x86.
-4. **Despliegue (`deploy`)**: Despliegue en caliente en la Raspberry Pi 4 B.
+El pipeline se ejecuta desde el repositorio:
 
-## Ejecución Local de Pruebas
+`root/laboratorio-devops`
 
-Para ejecutar las pruebas en este directorio localmente:
-
-```bash
-cd backend
-python -m pytest test_api.py -v
-```
+Todas las actualizaciones del laboratorio serán automáticas.
