@@ -14,7 +14,7 @@ export class ApiService {
     return this.http.get(`${this.apiUrl}/health`);
   }
 
-  login(credentials: { username: str; password: str }): Observable<any> {
+  login(credentials: { username: string; password: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/auth/login`, credentials);
   }
 
