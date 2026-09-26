@@ -6,7 +6,15 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ApiService {
-  private apiUrl = 'http://localhost:8000';
+  private getApiUrl(): string {
+    if (typeof window === 'undefined') return 'http://localhost:8000';
+    const host = window.location.hostname;
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) return `http://${host}:3006`;
+    if (host.includes('-web')) return `${window.location.protocol}//${host.replace('-web', '-api')}`;
+    return 'http://localhost:8000';
+  }
+
+  private apiUrl = this.getApiUrl();
 
   constructor(private http: HttpClient) {}
 
