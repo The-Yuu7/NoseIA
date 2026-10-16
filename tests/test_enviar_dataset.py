@@ -19,6 +19,7 @@ def mod(monkeypatch, tmp_path):
     pd.DataFrame(rows).to_csv(csv_path, index=False)
     monkeypatch.setattr(m, "DATASET_PATH", str(csv_path))
     monkeypatch.setattr(m.time, "sleep", lambda s: None)
+    monkeypatch.setenv("API_ALLOWED_HOSTS", "10.0.0.5,srv")
     return m
 
 
@@ -131,3 +132,29 @@ def test_cancelacion_con_ctrl_c(mod, monkeypatch, capsys):
     feed(monkeypatch, ["", "1", "", "", "s"])
     mod.main()
     assert "Envío cancelado" in capsys.readouterr().out
+
+
+def test_resolver_servidor_acepta_hosts_permitidos(mod):
+    assert mod.resolver_servidor("") == "https://localhost:8000"
+    assert mod.resolver_servidor("localhost") == "https://localhost:8000"
+    assert mod.resolver_servidor("http://srv:9000") == "http://srv:9000"
+    assert mod.resolver_servidor("10.0.0.5:8029") == "https://10.0.0.5:8029"
+
+
+@pytest.mark.parametrize("entrada", [
+    "http://evil.example.com",
+    "http://169.254.169.254/latest/meta-data",
+    "localhost:99999",
+    "localhost:abc",
+    "http://[::1",
+])
+def test_resolver_servidor_rechaza_entradas_peligrosas(mod, entrada):
+    assert mod.resolver_servidor(entrada) is None
+
+
+def test_host_no_permitido_termina(mod, monkeypatch, capsys):
+    feed(monkeypatch, ["http://evil.example.com"])
+    with pytest.raises(SystemExit) as exc:
+        mod.main()
+    assert exc.value.code == 1
+    assert "no permitido" in capsys.readouterr().out

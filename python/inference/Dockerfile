@@ -14,10 +14,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade "pip>=23.0" && \
-    pip install --no-cache-dir --prefer-binary -r requirements.txt
+RUN pip install --no-cache-dir --only-binary :all: pip==24.3.1 && \
+    pip install --no-cache-dir --only-binary :all: -r requirements.txt
 
-COPY . .
+COPY app ./app
 
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
 

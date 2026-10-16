@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import secrets
+from urllib.parse import urlsplit
 import pandas as pd
 import requests
 
@@ -11,6 +12,39 @@ rng = secrets.SystemRandom()
 DEFAULT_SERVER = os.getenv("API_SERVER_URL", "https://localhost:8000")
 base_dir = os.path.dirname(os.path.abspath(__file__))
 DATASET_PATH = os.path.join(base_dir, "data", "datos_reales.csv")
+PUERTO_POR_DEFECTO = 8000
+
+
+def hosts_permitidos():
+    """Hosts a los que se permite transmitir (evita SSRF). Ampliable con API_ALLOWED_HOSTS."""
+    extra = os.getenv("API_ALLOWED_HOSTS", "")
+    hosts = ["localhost", "127.0.0.1"]
+    hosts += [h.strip() for h in extra.split(",") if h.strip()]
+    por_defecto = urlsplit(DEFAULT_SERVER).hostname
+    if por_defecto:
+        hosts.append(por_defecto)
+    return hosts
+
+
+def resolver_servidor(texto):
+    """
+    Convierte la entrada del usuario en una URL base segura.
+    Solo acepta hosts de la lista permitida, esquema http/https y un puerto válido.
+    Devuelve None si la entrada no es aceptable.
+    """
+    texto = texto.strip() or DEFAULT_SERVER
+    if "://" not in texto:
+        texto = "https://" + texto
+    try:
+        partes = urlsplit(texto)
+        puerto = partes.port or PUERTO_POR_DEFECTO
+    except ValueError:
+        return None
+    host = next((h for h in hosts_permitidos() if h == partes.hostname), None)
+    if host is None or not 1 <= puerto <= 65535:
+        return None
+    esquema = "http" if partes.scheme == "http" else "https"
+    return f"{esquema}://{host}:{puerto}"
 
 
 def main():
@@ -18,18 +52,13 @@ def main():
     print("        STREAMER DE DATASETS E-NOSE (Simulador de Cliente Laptop)")
     print("======================================================================")
 
-    # 1. Configurar servidor de destino
-    server = input(f"Ingrese la URL de la API (Presione Enter para {DEFAULT_SERVER}): ").strip()
-    if not server:
-        server = DEFAULT_SERVER
-
-    # Auto-completar puerto 8000 si no se especifica
-    clean_host = server.split("://")[-1]
-    if ":" not in clean_host:
-        server = server + ":8000"
-
-    if "://" not in server:
-        server = "https://" + server
+    # 1. Configurar servidor de destino (solo hosts permitidos)
+    server = resolver_servidor(
+        input(f"Ingrese la URL de la API (Presione Enter para {DEFAULT_SERVER}): ")
+    )
+    if server is None:
+        print("[ERROR] Servidor no permitido. Defina API_ALLOWED_HOSTS con los hosts autorizados.")
+        sys.exit(1)
 
     # Validar conexión
     print(f"\n[INFO] Validando conexión con el servidor en {server}/health...")

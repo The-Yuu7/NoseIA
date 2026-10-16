@@ -1,7 +1,7 @@
-fastapi
-uvicorn
-numpy
-scikit-learn
-requests
-pandas
-pydantic
+fastapi==0.115.6
+uvicorn==0.34.0
+numpy==1.26.4
+scikit-learn==1.5.2
+requests==2.32.3
+pandas==2.2.3
+pydantic==2.10.4

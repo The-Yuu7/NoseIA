@@ -57,9 +57,11 @@ class FakeInterp:
 
 # ---------- auth ----------
 def test_hash_password_is_deterministic_sha256():
-    assert auth.hash_password("abc") == auth.hash_password("abc")
-    assert len(auth.hash_password("abc")) == 64
-    assert auth.hash_password("abc") != auth.hash_password("abd")
+    first = auth.hash_password("abc")
+    second = auth.hash_password("abc")
+    assert first == second
+    assert len(first) == 64
+    assert first != auth.hash_password("abd")
 
 
 def test_verify_password_plain_hash():
